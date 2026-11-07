@@ -1,0 +1,6 @@
+{
+  "name": "Дневник.ру Иркутск — Дневник и оценки",
+  "description": "Андроид-приложение для Дневник.ру (userfeed) Иркутской области: авторизация через Госуслуги, моментальные пуш-уведомления о новых оценках, домашние задания и средний балл.",
+  "requestFramePermissions": ["notifications"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

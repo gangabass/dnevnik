@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A8A" />
+      <stop offset="50%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#3B82F6" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#EF4444" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0F172A" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded squircle -->
+  <rect x="24" y="24" width="464" height="464" rx="104" fill="url(#bg)" />
+
+  <!-- Dnevnik stylized book / journal & badge -->
+  <g filter="url(#shadow)">
+    <!-- Diary cover / base -->
+    <rect x="110" y="110" width="292" height="292" rx="36" fill="#FFFFFF" fill-opacity="0.96" />
+    
+    <!-- Diary spine line -->
+    <rect x="136" y="110" width="16" height="292" fill="#DBEAFE" />
+
+    <!-- Ruled lines representing grades and diary feed -->
+    <rect x="180" y="160" width="180" height="18" rx="9" fill="#93C5FD" />
+    <rect x="180" y="200" width="130" height="14" rx="7" fill="#BFDBFE" />
+    <rect x="180" y="235" width="150" height="14" rx="7" fill="#BFDBFE" />
+
+    <!-- Gosuslugi / Russian shield badge emblem in corner -->
+    <circle cx="330" cy="315" r="58" fill="url(#accent)" />
+    
+    <!-- Big 5 mark (Отлично / Top Mark) in badge -->
+    <text x="330" y="342" font-family="system-ui, -apple-system, Roboto, sans-serif" font-weight="900" font-size="74" fill="#FFFFFF" text-anchor="middle">5</text>
+  </g>
+</svg>
