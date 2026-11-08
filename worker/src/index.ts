@@ -47,6 +47,21 @@ export default {
       });
     }
 
+    // Временный тестовый профиль
+    if (url.pathname === "/api/profile") {
+      return json({
+        ok: true,
+        demo: true,
+        profile: {
+          id: "demo-001",
+          firstName: "Тестовый",
+          lastName: "Ученик",
+          className: "8А",
+          schoolName: "Демо-школа",
+        },
+      });
+    }
+
     return json({ error: "Not found" }, 404);
   },
 } satisfies ExportedHandler<Env>;
