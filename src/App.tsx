@@ -16,6 +16,7 @@ import { GosuslugiAuthModal } from './components/GosuslugiAuthModal';
 import { GradeDetailModal } from './components/GradeDetailModal';
 import { PWAInstallBanner } from './components/PWAInstallBanner';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { checkApiHealth } from './services/apiService';
 
 import { 
   StudentProfile, 
@@ -142,6 +143,32 @@ export default function App() {
   const unreadFeedCount = feed.filter(f => !f.isRead).length;
   const pendingHwCount = homework.filter(h => !h.isCompleted).length;
 
+    const [apiStatus, setApiStatus] = useState<
+    'checking' | 'online' | 'offline'
+    >('checking');
+
+    useEffect(() => {
+    let active = true;
+
+    checkApiHealth()
+        .then((result) => {
+        if (active) {
+            setApiStatus(result.ok ? 'online' : 'offline');
+        }
+        })
+        .catch((error) => {
+        console.error('API connection error:', error);
+
+        if (active) {
+            setApiStatus('offline');
+        }
+        });
+
+    return () => {
+        active = false;
+    };
+    }, []);
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex justify-center">
       {/* Mobile Frame Container (Native Android viewport feel) */}
@@ -164,6 +191,27 @@ export default function App() {
         <main className="flex-1 px-4 pt-3 overflow-y-auto no-scrollbar">
           {/* PWA Install Banner */}
           <PWAInstallBanner />
+
+        <div className="mb-2 flex items-center gap-2 text-xs">
+        <span
+            className={`h-2 w-2 rounded-full ${
+            apiStatus === 'online'
+                ? 'bg-green-500'
+                : apiStatus === 'offline'
+                ? 'bg-red-500'
+                : 'bg-yellow-500 animate-pulse'
+            }`}
+        />
+        <span className="text-slate-400">
+            API: {
+            apiStatus === 'online'
+                ? 'Подключено'
+                : apiStatus === 'offline'
+                ? 'Нет соединения'
+                : 'Проверка соединения...'
+            }
+        </span>
+        </div>
 
           {activeTab === 'feed' && (
             <UserFeedView
