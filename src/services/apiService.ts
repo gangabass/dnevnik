@@ -92,3 +92,22 @@ export function checkApiHealth(): Promise<HealthResponse> {
 }
 
 export { API_BASE_URL };
+
+
+export interface StudentProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  className: string;
+  schoolName: string;
+}
+
+export interface ProfileResponse {
+  ok: boolean;
+  demo: boolean;
+  profile: StudentProfile;
+}
+
+export function getProfile(): Promise<ProfileResponse> {
+  return apiRequest<ProfileResponse>('/api/profile');
+}
