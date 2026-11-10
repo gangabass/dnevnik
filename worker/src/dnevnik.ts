@@ -4,13 +4,13 @@ export function parseDnevnikJson(text: string): unknown {
     /^-?\d{16,}$/.test(token) ? JSON.stringify(token) : token));
 }
 
-type Row = Record<string, unknown>;
-function row(value: unknown): Row {
+export type Row = Record<string, unknown>;
+export function row(value: unknown): Row {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Row : {};
 }
-function rows(value: unknown): Row[] { return Array.isArray(value) ? value.map(row) : []; }
-function id(value: unknown): string { return value == null ? '' : String(value); }
-function key(value: Row): string { return id(value.id_str ?? value.id); }
+export function rows(value: unknown): Row[] { return Array.isArray(value) ? value.map(row) : []; }
+export function id(value: unknown): string { return value == null ? '' : String(value); }
+export function key(value: Row): string { return id(value.id_str ?? value.id); }
 function safeDownload(value: unknown): string | undefined {
   if (typeof value !== 'string') return;
   try {

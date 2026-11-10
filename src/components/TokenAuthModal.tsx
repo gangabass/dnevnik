@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { X, KeyRound } from 'lucide-react';
+import { getStudents } from '../services/apiService';
+import type { StudentChoice } from '../../shared/diary';
 import type { Connection } from '../services/connectionService';
 interface Props {
   initial: Connection | null;
@@ -13,10 +15,27 @@ export function TokenAuthModal({ initial, connected, onClose, onConnect, onDisco
   const [personId, setPersonId] = useState(initial?.personId || '');
   const [schoolId, setSchoolId] = useState(initial?.schoolId || '');
   const [studentName, setStudentName] = useState(initial?.studentName || '');
+  const [students, setStudents] = useState<StudentChoice[]>([]);
+  const [discoveryMessage, setDiscoveryMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const controller = React.useRef<AbortController | null>(null);
   React.useEffect(() => () => controller.current?.abort(), []);
+  async function discover() {
+    setBusy(true); setError(''); setDiscoveryMessage('');
+    controller.current?.abort(); controller.current = new AbortController();
+    try {
+      const result = await getStudents(token.trim(), controller.current.signal);
+      if (controller.current.signal.aborted) return;
+      setStudents(result.students);
+      if (result.students.length) {
+        const match = result.students.find(student => student.personId === personId && student.schoolId === schoolId) || result.students[0];
+        setPersonId(match.personId); setSchoolId(match.schoolId); setStudentName(match.studentName);
+      } else setDiscoveryMessage('Ученики не найдены в контексте. Укажите ID вручную.');
+    } catch (error) {
+      if (!controller.current.signal.aborted) setDiscoveryMessage(error instanceof Error ? error.message : 'Не удалось найти учеников. Можно указать ID вручную.');
+    } finally { setBusy(false); }
+  }
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setError('');
@@ -26,7 +45,8 @@ export function TokenAuthModal({ initial, connected, onClose, onConnect, onDisco
     setBusy(true);
     controller.current = new AbortController();
     try {
-      await onConnect({ personId: personId.trim(), schoolId: schoolId.trim(), studentName: studentName.trim() }, token.trim(), controller.current.signal);
+      const choice = students.find(student => student.personId === personId.trim() && student.schoolId === schoolId.trim());
+      await onConnect({ personId: personId.trim(), schoolId: schoolId.trim(), studentName: studentName.trim(), schoolName: choice?.schoolName, className: choice?.className }, token.trim(), controller.current.signal);
       onClose();
     } catch (error) {
       if (!controller.current.signal.aborted) setError(error instanceof Error ? error.message : 'Не удалось подключиться.');
@@ -37,8 +57,11 @@ export function TokenAuthModal({ initial, connected, onClose, onConnect, onDisco
     <section className="w-full max-w-md max-h-[90dvh] overflow-y-auto rounded-3xl border border-slate-700 bg-slate-900 p-5">
       <div className="flex items-center justify-between mb-4"><h2 id="token-title" className="font-bold flex items-center gap-2"><KeyRound size={18} /> Подключение Дневник.ру</h2><button onClick={onClose} aria-label="Закрыть"><X /></button></div>
       <form onSubmit={submit} className="space-y-4">
-        <label className="block text-sm">Токен доступа<input className={fieldClass} type="password" autoComplete="off" value={token} onChange={event => setToken(event.target.value)} required disabled={busy} /></label>
+        <label className="block text-sm">Токен доступа<input className={fieldClass} type="password" autoComplete="off" value={token} onChange={event => { setToken(event.target.value); setStudents([]); setDiscoveryMessage(''); }} required disabled={busy} /></label>
         <p className="text-xs text-slate-400">Токен хранится до закрытия вкладки и передаётся серверу для запросов к Дневник.ру.</p>
+        <button type="button" disabled={busy || !token.trim()} onClick={() => void discover()} className="w-full rounded-xl border border-blue-600 py-2 text-sm text-blue-300 disabled:opacity-50">Найти учеников по токену</button>
+        {discoveryMessage && <p role="status" className="text-xs text-amber-300">{discoveryMessage}</p>}
+        {students.length > 0 && <label className="block text-sm">Ученик и школа<select className={fieldClass} disabled={busy} value={`${personId}:${schoolId}`} onChange={event => { const choice = students.find(student => `${student.personId}:${student.schoolId}` === event.target.value); if (choice) { setPersonId(choice.personId); setSchoolId(choice.schoolId); setStudentName(choice.studentName); } }}><option value="" disabled>Выберите ученика</option>{students.map(student => <option key={`${student.personId}:${student.schoolId}`} value={`${student.personId}:${student.schoolId}`}>{student.studentName} · {student.className} · {student.schoolName}</option>)}</select></label>}
         <label className="block text-sm">Имя ученика (для отображения)<input className={fieldClass} value={studentName} onChange={event => setStudentName(event.target.value)} disabled={busy} /></label>
         <label className="block text-sm">ID ученика (personId)<input className={fieldClass} inputMode="numeric" value={personId} onChange={event => setPersonId(event.target.value)} required disabled={busy} /></label>
         <label className="block text-sm">ID школы (schoolId)<input className={fieldClass} inputMode="numeric" value={schoolId} onChange={event => setSchoolId(event.target.value)} required disabled={busy} /></label>

@@ -49,7 +49,7 @@ export const AndroidBottomNav: React.FC<AndroidBottomNavProps> = ({
     },
     {
       id: 'push' as TabType,
-      label: 'Пуш / Опции',
+      label: 'Настройки',
       icon: Bell,
       badge: null,
       badgeColor: '',

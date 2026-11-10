@@ -22,7 +22,7 @@ describe('Dnevnik API', () => {
     expect(await response.json()).toMatchObject({ ok: true, service: 'dnevnik-worker' });
   });
   it('requires a token for personal routes', async () => {
-    for (const path of ['/api/profile', '/api/homework']) {
+    for (const path of ['/api/profile', '/api/homework', '/api/context', '/api/diary']) {
       const response = await SELF.fetch(`https://example.com${path}`);
       expect(response.status).toBe(401);
     }
@@ -96,6 +96,11 @@ describe('Dnevnik API', () => {
     expect(response.status).toBe(status === 500 ? 502 : status);
     const body = await response.text();
     expect(body).not.toContain('secret'); expect(body).not.toContain('test-token');
+  });
+  it.each(['invalidToken', 'tokenRequired'])('treats HTTP 200 %s as an authentication error', async type => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ type })));
+    const response = await worker.fetch(new Request('https://example.com/api/profile', { headers: auth }), {});
+    expect(response.status).toBe(401);
   });
   it('handles network and unexpected API responses', async () => {
     for (const mock of [

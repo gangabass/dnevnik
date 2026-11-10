@@ -1,3 +1,4 @@
+import type { DiaryResponse, StudentChoice } from '../../shared/diary';
 import type { HomeworkItem } from '../types';
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://dnevnik.gangabass.workers.dev').replace(/\/+$/, '');
 export class ApiError extends Error {
@@ -32,3 +33,11 @@ export function getHomework(token: string, personId: string, schoolId: string, s
   });
 }
 export { API_BASE_URL };
+
+export function getStudents(token: string, signal?: AbortSignal) {
+  return apiRequest<{ ok: true; students: StudentChoice[] }>('/api/context', { headers: { Authorization: `Bearer ${token}` }, signal });
+}
+export function getDiary(token: string, personId: string, schoolId: string, startDate: string, endDate: string, signal?: AbortSignal) {
+  const params = new URLSearchParams({ personId, schoolId, startDate, endDate });
+  return apiRequest<DiaryResponse>(`/api/diary?${params}`, { headers: { Authorization: `Bearer ${token}` }, signal });
+}

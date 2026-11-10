@@ -1,10 +1,5 @@
-import type { HomeworkItem } from '../types';
-export interface Connection {
-  personId: string;
-  schoolId: string;
-  studentName: string;
-}
-export interface HomeworkCache { homework: HomeworkItem[]; updatedAt: string; startDate: string; endDate: string }
+import type { Connection, HomeworkCache } from '../../shared/diary';
+export type { Connection, HomeworkCache } from '../../shared/diary';
 const SETTINGS = 'dnevnik_connection_v1';
 const TOKEN = 'dnevnik_token_v1';
 function cacheKey(connection: Connection) { return `dnevnik_homework_v1:${connection.personId}:${connection.schoolId}`; }
@@ -23,6 +18,7 @@ export const connectionService = {
   },
   disconnect() {
     sessionStorage.removeItem(TOKEN);
+    localStorage.removeItem('dnevnik_live_options_v1');
     localStorage.removeItem(SETTINGS);
     Object.keys(localStorage).filter(key => key.startsWith('dnevnik_homework_v1:')).forEach(key => localStorage.removeItem(key));
     // Remove personal/demo data saved by earlier versions as well.
