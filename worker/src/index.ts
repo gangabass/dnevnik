@@ -19,9 +19,14 @@ async function dnevnik(path: string, token: string, params?: URLSearchParams): P
   try {
     response = await fetch(`https://api.dnevnik.ru/v2/${path}${params ? `?${params}` : ''}`, {
       headers: { 'Access-Token': token, Accept: 'application/json' },
-      redirect: 'error', signal: AbortSignal.timeout(20000),
+      // Workers supports manual/follow only; redirect: 'error' throws before sending.
+      redirect: 'manual', signal: AbortSignal.timeout(20000),
     });
   } catch { throw new ApiFailure('Дневник.ру недоступен. Повторите запрос позже.', 502); }
+  // Never forward the token to a redirect destination.
+  if (response.status >= 300 && response.status < 400) {
+    throw new ApiFailure('Дневник.ру вернул перенаправление вместо ответа API. Запрос остановлен.', 502);
+  }
   if (!response.ok) {
     const messages: Record<number, string> = {
       401: 'Токен недействителен или истёк. Введите новый токен.',

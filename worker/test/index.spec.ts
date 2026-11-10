@@ -57,11 +57,33 @@ describe('Dnevnik API', () => {
     expect(url.searchParams.get('endDate')).toBe('2026-11-15T23:59:59.999999');
     expect(address).not.toContain('test-token');
     expect(options.headers['Access-Token']).toBe('test-token');
-    expect(options.redirect).toBe('error');
+    expect(options.redirect).toBe('manual');
     expect(response.headers.get('Cache-Control')).toBe('no-store');
     const body = await response.json<{ homework: { id: string; subject: string; teacherName: string; files: { url: string }[] }[] }>();
     expect(body.homework[0]).toMatchObject({ id: '2555795349104931316', subject: 'Алгебра', teacherName: 'Учитель' });
     expect(body.homework[0].files[0].url).toBe('https://b3.csdnevnik.ru/example.pdf');
+  });
+  it('uses request options supported by the runtime', async () => {
+    const upstream = vi.fn().mockImplementation((address: string, options: RequestInit) => {
+      // In the Cloudflare runtime this constructor rejects redirect: 'error'.
+      const request = new Request(address, options);
+      expect(request.redirect).toBe('manual');
+      return Promise.resolve(new Response('{}', { status: 401 }));
+    });
+    vi.stubGlobal('fetch', upstream);
+    const response = await worker.fetch(new Request('https://example.com/api/profile', { headers: auth }), {});
+    expect(response.status).toBe(401);
+    expect(upstream).toHaveBeenCalledTimes(1);
+  });
+  it.each([301, 302, 303, 307, 308])('blocks HTTP %i redirects without forwarding the token', async status => {
+    const upstream = vi.fn().mockResolvedValue(new Response(null, {
+      status, headers: { Location: 'https://other.example/collect' },
+    }));
+    vi.stubGlobal('fetch', upstream);
+    const response = await worker.fetch(new Request('https://example.com/api/profile', { headers: auth }), {});
+    expect(response.status).toBe(502);
+    expect(await response.text()).toContain('перенаправление');
+    expect(upstream).toHaveBeenCalledTimes(1);
   });
   it('returns only the required profile fields', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{"id":1000000000001,"shortName":"Родитель","phone":"private"}')));
