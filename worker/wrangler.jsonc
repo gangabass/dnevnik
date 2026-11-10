@@ -4,9 +4,16 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "worker",
+	"name": "dnevnik",
 	"main": "src/index.ts",
 	"compatibility_date": "2026-11-04",
+  "triggers": { "crons": ["*/5 * * * *"] },
+  "d1_databases": [{
+    "binding": "PUSH_DB",
+    "database_name": "dnevnik-push",
+    "database_id": "31f47582-d290-4345-a30b-5c983f632513",
+    "migrations_dir": "migrations"
+  }],
 	"observability": {
 		"enabled": true
 	},

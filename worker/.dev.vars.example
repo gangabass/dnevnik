@@ -1,0 +1,6 @@
+# Generate real values with: node scripts/generate-push-secrets.mjs
+# Keep the same encryption key and VAPID keys across deployments.
+TOKEN_ENCRYPTION_KEY="BASE64URL_32_RANDOM_BYTES"
+VAPID_PUBLIC_KEY="BASE64URL_UNCOMPRESSED_P256_PUBLIC_KEY"
+VAPID_PRIVATE_KEY="BASE64URL_P256_PRIVATE_SCALAR"
+VAPID_SUBJECT="https://github.com/gangabass/dnevnik"

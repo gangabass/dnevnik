@@ -165,3 +165,6 @@ dist
 .env*
 !.env.example
 .wrangler/
+
+# Generated VAPID and encryption keys (never commit)
+.push-secrets.json

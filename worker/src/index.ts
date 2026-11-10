@@ -1,11 +1,14 @@
+import { pushRoute } from './push/routes';
+import { runPushCron } from './push/poller';
+import { ApiFailure, dnevnik } from './upstream';
 import { normalizeDiary, studentChoices } from './diary';
 import type { DiaryWarning } from '../../shared/diary';
-import { row, rows, id, key, normalizeHomework, parseDnevnikJson } from './dnevnik';
+import { row, rows, id, key, normalizeHomework } from './dnevnik';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Push-Device, X-Push-Key',
 };
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), { status, headers: {
@@ -13,52 +16,18 @@ function json(data: unknown, status = 200): Response {
     'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',
   } });
 }
-class ApiFailure extends Error {
-  constructor(message: string, public status: number) { super(message); }
-}
-async function dnevnik(path: string, token: string, params?: URLSearchParams): Promise<unknown> {
-  let response: Response;
-  try {
-    response = await fetch(`https://api.dnevnik.ru/v2/${path}${params ? `?${params}` : ''}`, {
-      headers: { 'Access-Token': token, Accept: 'application/json' },
-      // Workers supports manual/follow only; redirect: 'error' throws before sending.
-      redirect: 'manual', signal: AbortSignal.timeout(20000),
-    });
-  } catch { throw new ApiFailure('Дневник.ру недоступен. Повторите запрос позже.', 502); }
-  // Never forward the token to a redirect destination.
-  if (response.status >= 300 && response.status < 400) {
-    throw new ApiFailure('Дневник.ру вернул перенаправление вместо ответа API. Запрос остановлен.', 502);
-  }
-  if (!response.ok) {
-    const messages: Record<number, string> = {
-      401: 'Токен недействителен или истёк. Введите новый токен.',
-      403: 'Нет доступа к данным. Проверьте права токена и ID ученика и школы.',
-      404: 'Данные не найдены. Проверьте ID ученика и школы.',
-      429: 'Дневник.ру ограничил частоту запросов. Повторите позже.',
-    };
-    throw new ApiFailure(messages[response.status] ?? 'Ошибка сервиса Дневник.ру.',
-      [401, 403, 404, 429].includes(response.status) ? response.status : 502);
-  }
-  let result: unknown;
-  try { result = parseDnevnikJson(await response.text()); }
-  catch { throw new ApiFailure('Дневник.ру вернул неожиданный ответ.', 502); }
-  const errorType = row(result).type;
-  if (typeof errorType === 'string' && /^(invalidToken|tokenRequired|authorization)/i.test(errorType)) {
-    throw new ApiFailure('Токен недействителен или истёк. Введите новый токен.', 401);
-  }
-  if (result && typeof result === 'object' && ('error' in result || (typeof errorType === 'string' && /^(api|parameter)/i.test(errorType)))) {
-    throw new ApiFailure('Дневник.ру вернул ошибку API.', 502);
-  }
-  return result;
-}
 function validDate(value: string | null): value is string {
   return !!value && /^\d{4}-\d{2}-\d{2}$/.test(value) &&
     !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
 }
 export default {
-  async fetch(request: Request, _env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders });
+    if (url.pathname.startsWith('/api/push/')) {
+      try { const result = await pushRoute(request,env); return json(result.data,result.status); }
+      catch (error) { return error instanceof ApiFailure ? json({error:error.message},error.status) : json({error:'Не удалось обработать push-подписку.'},502); }
+    }
     if (request.method !== 'GET') return json({ error: 'Method not allowed' }, 405);
     if (url.pathname === '/') return json({ service: 'Dnevnik.ru API', status: 'running', version: '0.3.0' });
     if (url.pathname === '/api/health') return json({ ok: true, service: 'dnevnik-worker', timestamp: new Date().toISOString() });
@@ -131,4 +100,5 @@ export default {
       return json({ error: 'Не удалось обработать ответ Дневник.ру.' }, 502);
     }
   },
+  async scheduled(_event: ScheduledController, env: Env): Promise<void> { await runPushCron(env); },
 } satisfies ExportedHandler<Env>;

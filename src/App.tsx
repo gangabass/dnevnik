@@ -10,6 +10,8 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { LiveGradesView } from './components/LiveGradesView';
 import { LiveScheduleView } from './components/LiveScheduleView';
 import { DiaryFeedView, feedItems } from './components/DiaryFeedView';
+import { BackgroundPushSettings } from './components/BackgroundPushSettings';
+import { disableBackgroundPush, hasPushDevice, hasBackgroundPush, renewBackgroundPush } from './services/backgroundPush';
 import { LiveSettingsView } from './components/LiveSettingsView';
 import { average, mergeDiary, newMarks } from './services/diaryService';
 import { loadLiveOptions, saveLiveOptions, notifyNewMarks } from './services/liveNotifications';
@@ -37,7 +39,7 @@ export default function App() {
   const [range, setRange] = useState(initialRange);
   const [appliedRange, setAppliedRange] = useState(initialRange);
   const [accountName, setAccountName] = useState('');
-  const [activeTab, setActiveTab] = useState<TabType>('homework');
+  const [activeTab, setActiveTab] = useState<TabType>(() => { const tab = new URLSearchParams(window.location.search).get('tab'); return ['feed','grades','homework','schedule','push'].includes(tab || '') ? tab as TabType : 'homework'; });
   const [authOpen, setAuthOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -68,7 +70,7 @@ export default function App() {
         setWarnings(result.warnings);
         connectionService.saveCache(connection, next);
         setCache(next); setAccountName(profile.profile.name);
-        if (optionsRef.current.notifications && document.visibilityState === 'visible' && additions.length) {
+        if (optionsRef.current.notifications && !hasBackgroundPush() && document.visibilityState === 'visible' && additions.length) {
           void notifyNewMarks(additions).catch(() => {});
         }
       } catch (error) {
@@ -104,10 +106,15 @@ export default function App() {
       setAppliedRange(range);
       setConnection(nextConnection); setToken(nextToken); setCache(nextCache);
       setAccountName(profile.profile.name); setError(''); setWarnings(result.warnings); setActiveTab('homework');
+      if (hasPushDevice()) {
+        try { await renewBackgroundPush(nextToken,nextConnection); }
+        catch { setError('Дневник подключён, но фоновую подписку не удалось обновить. Проверьте раздел настроек.'); }
+      }
     } finally { setBusy(false); busyRef.current = false; }
   }
 
-  function disconnect() {
+  async function disconnect() {
+    if (hasPushDevice()) await disableBackgroundPush();
     requestRef.current?.abort();
     connectionService.disconnect();
     setOptions(loadLiveOptions());
@@ -172,7 +179,7 @@ export default function App() {
         {activeTab === 'grades' && <LiveGradesView grades={grades} />}
         {activeTab === 'schedule' && <LiveScheduleView days={cache?.schedule || []} />}
         {activeTab === 'feed' && <DiaryFeedView grades={grades} homework={homework} readIds={cache?.readFeedIds || []} onRead={markFeedRead} onNavigate={setActiveTab} />}
-        {activeTab === 'push' && <LiveSettingsView options={options} onChange={next => { setOptions(next); saveLiveOptions(next); }} onOpenAuth={() => setAuthOpen(true)} />}
+        {activeTab === 'push' && <div className="space-y-4"><BackgroundPushSettings token={token} connection={connection} onEnabled={() => { const next={...options,notifications:false};setOptions(next);saveLiveOptions(next); }} /><LiveSettingsView options={options} onChange={next => { setOptions(next); saveLiveOptions(next); }} onOpenAuth={() => setAuthOpen(true)} /></div>}
 
       </main>
       <AndroidBottomNav currentTab={activeTab} onChangeTab={setActiveTab} unreadFeedCount={unreadFeedCount} pendingHwCount={homework.filter(item => !item.isCompleted).length} gpa={gpa} />

@@ -8,7 +8,7 @@ interface Props {
   connected: boolean;
   onClose: () => void;
   onConnect: (connection: Connection, token: string, signal: AbortSignal) => Promise<void>;
-  onDisconnect: () => void;
+  onDisconnect: () => Promise<void>;
 }
 export function TokenAuthModal({ initial, connected, onClose, onConnect, onDisconnect }: Props) {
   const [token, setToken] = useState('');
@@ -68,7 +68,7 @@ export function TokenAuthModal({ initial, connected, onClose, onConnect, onDisco
         <p className="text-xs text-slate-400">Для родительского токена укажите ID персоны ребёнка. Сохранённые ДЗ доступны без сети на этом устройстве.</p>
         {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
         <button disabled={busy} className="w-full rounded-xl bg-blue-600 py-3 font-semibold disabled:opacity-50">{busy ? 'Проверяем доступ…' : 'Подключить'}</button>
-        {connected && <button type="button" disabled={busy} onClick={onDisconnect} className="w-full py-2 text-sm text-red-300">Выйти и удалить сохранённые данные</button>}
+        {connected && <button type="button" disabled={busy} onClick={async () => { setBusy(true); setError(''); try { await onDisconnect(); } catch { setError('Не удалось удалить серверную push-подписку. Повторите выход при доступном интернете.'); } finally { setBusy(false); } }} className="w-full py-2 text-sm text-red-300">Выйти и удалить сохранённые данные</button>}
       </form>
     </section>
   </div>;
