@@ -31,7 +31,7 @@ export interface HomeworkItem {
   dateGiven: string;
   dateDue: string;
   text: string;
-  files?: { name: string; size: string; type: string }[];
+  files?: { name: string; size: string; type: string; url?: string }[];
   isCompleted: boolean;
   priority: 'high' | 'normal' | 'low';
 }
@@ -75,8 +75,7 @@ export interface StudentProfile {
   schoolRegion: string;
   className: string;
   avatarUrl?: string;
-  esiaConnected: boolean;
-  esiaUserId?: string;
+  tokenConnected: boolean;
   currentQuarter: number;
   gpa: number;
 }

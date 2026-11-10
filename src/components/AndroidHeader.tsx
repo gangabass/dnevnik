@@ -83,11 +83,11 @@ export const AndroidHeader: React.FC<AndroidHeaderProps> = ({
             )}
           </button>
 
-          {/* Student Profile & Gosuslugi Badge */}
+          {/* Student Profile & Token Status */}
           <button
             onClick={onOpenAuth}
             className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-left transition active:scale-95"
-            title="Профиль ученика и авторизация Госуслуги"
+            title="Подключение по токену Дневник.ру"
           >
             <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-slate-900 font-bold text-xs shadow shrink-0">
               {student.shortName[0]}
@@ -95,8 +95,8 @@ export const AndroidHeader: React.FC<AndroidHeaderProps> = ({
             <div className="hidden sm:block text-left">
               <div className="text-xs font-semibold leading-tight text-white flex items-center gap-1">
                 <span className="truncate max-w-[100px]">{student.shortName}</span>
-                {student.esiaConnected && (
-                  <span title="Авторизовано через Госуслуги (ЕСИА)">
+                {student.tokenConnected && (
+                  <span title="Подключено по токену">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                   </span>
                 )}

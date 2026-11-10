@@ -9,8 +9,7 @@ export const INITIAL_STUDENT: StudentProfile = {
   className: '9 «А» класс',
   currentQuarter: 3,
   gpa: 4.58,
-  esiaConnected: true,
-  esiaUserId: '100-349-812 04',
+  tokenConnected: true,
 };
 
 export const INITIAL_GRADES: GradeItem[] = [

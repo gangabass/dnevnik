@@ -6,11 +6,14 @@
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
     "start": "wrangler dev",
-    "test": "vitest",
-    "cf-typegen": "wrangler types"
+    "test": "vitest run",
+    "lint": "tsc --noEmit && tsc --noEmit -p test/tsconfig.json",
+    "cf-typegen": "wrangler types --include-runtime=false",
+    "test:unit": "vitest run --config vitest.unit.config.mts"
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "^1.4.3",
+    "@cloudflare/workers-types": "^5.20261109.1",
     "typescript": "^5.5.2",
     "vitest": "~5.0.3",
     "wrangler": "^4.158.0"

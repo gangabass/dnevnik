@@ -134,9 +134,9 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
         {filteredList.length === 0 ? (
           <div className="text-center py-12 bg-slate-900/40 rounded-3xl border border-slate-800 p-6">
             <CheckCheck className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
-            <h4 className="font-bold text-sm text-slate-300">Все задания выполнены!</h4>
+            <h4 className="font-bold text-sm text-slate-300">Нет заданий для отображения</h4>
             <p className="text-xs text-slate-500 mt-1">
-              В выбранном фильтре нет невыполненных заданий.
+              В выбранном периоде или фильтре нет заданий.
             </p>
           </div>
         ) : (
@@ -211,8 +211,11 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                     {hw.files && hw.files.length > 0 && (
                       <div className="mt-3 space-y-1.5 pt-2 border-t border-slate-800">
                         {hw.files.map((file, idx) => (
-                          <div
+                          <a
                             key={idx}
+                            href={file.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}
                             className="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-300 hover:bg-slate-800/80 transition"
                           >
@@ -223,7 +226,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                             <span className="text-[10px] text-slate-500 shrink-0 ml-2">
                               {file.size}
                             </span>
-                          </div>
+                          </a>
                         ))}
                       </div>
                     )}
