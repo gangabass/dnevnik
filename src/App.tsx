@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { RefreshCw, KeyRound } from 'lucide-react';
-import { AndroidStatusBar } from './components/AndroidStatusBar';
 import { AndroidHeader } from './components/AndroidHeader';
 import { AndroidBottomNav, type TabType } from './components/AndroidBottomNav';
 import { HomeworkView } from './components/HomeworkView';
@@ -150,7 +149,6 @@ export default function App() {
   const inputClass = 'min-w-0 w-full rounded-lg border border-slate-700 bg-slate-950 p-2 text-sm';
   return <div className="min-h-screen bg-slate-950 text-slate-100 flex justify-center">
     <div className="w-full max-w-md min-h-screen flex flex-col relative border-x border-slate-800/80">
-      <AndroidStatusBar unreadCount={unreadFeedCount} />
       <AndroidHeader student={student} unreadCount={unreadFeedCount} onOpenAuth={() => setAuthOpen(true)} onOpenNotifications={() => setActiveTab('push')} isInstallable={isInstallable} onInstall={install} />
       <main className="flex-1 px-4 pt-3 pb-24">
         <PWAInstallBanner />
