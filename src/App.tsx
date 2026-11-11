@@ -8,7 +8,8 @@ import { PWAInstallBanner } from './components/PWAInstallBanner';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { LiveGradesView } from './components/LiveGradesView';
 import { LiveScheduleView } from './components/LiveScheduleView';
-import { DiaryFeedView, feedItems } from './components/DiaryFeedView';
+import { DiaryFeedView } from './components/DiaryFeedView';
+import { feedItems } from './services/feedService';
 import { BackgroundPushSettings } from './components/BackgroundPushSettings';
 import { disableBackgroundPush, hasPushDevice, hasBackgroundPush, renewBackgroundPush } from './services/backgroundPush';
 import { LiveSettingsView } from './components/LiveSettingsView';
@@ -140,7 +141,7 @@ export default function App() {
   const homework = cache?.homework || [];
   const grades = cache?.grades || [];
   const gpa = average(grades) || 0;
-  const unreadFeedCount = feedItems(grades, homework).filter(item => !cache?.readFeedIds?.includes(item.id)).length;
+  const unreadFeedCount = feedItems(grades).filter(item => !cache?.readFeedIds?.includes(item.id)).length;
   function markFeedRead(ids: string[]) {
     if (!cache || !connection) return;
     const next = { ...cache, readFeedIds: [...new Set([...(cache.readFeedIds || []), ...ids])].slice(-3000) };
@@ -176,7 +177,7 @@ export default function App() {
         {activeTab === 'homework' && connection && <HomeworkView homework={homework} onToggleHomework={toggleHomework} />}
         {activeTab === 'grades' && <LiveGradesView grades={grades} />}
         {activeTab === 'schedule' && <LiveScheduleView days={cache?.schedule || []} />}
-        {activeTab === 'feed' && <DiaryFeedView grades={grades} homework={homework} readIds={cache?.readFeedIds || []} onRead={markFeedRead} onNavigate={setActiveTab} />}
+        {activeTab === 'feed' && <DiaryFeedView grades={grades} readIds={cache?.readFeedIds || []} onRead={markFeedRead} />}
         {activeTab === 'push' && <div className="space-y-4"><BackgroundPushSettings token={token} connection={connection} onEnabled={() => { const next={...options,notifications:false};setOptions(next);saveLiveOptions(next); }} /><LiveSettingsView options={options} onChange={next => { setOptions(next); saveLiveOptions(next); }} onOpenAuth={() => setAuthOpen(true)} /></div>}
 
       </main>
