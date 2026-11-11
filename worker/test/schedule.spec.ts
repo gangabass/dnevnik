@@ -10,12 +10,13 @@ describe('Upcoming schedule navigation', () => {
       { date: '2026-11-14', lessons: [] },
     ];
     const calendar = scheduleCalendar(days, '2026-11-12');
+    expect(calendar.map(day => day.date)).toEqual(['2026-11-09', '2026-11-10', '2026-11-11', '2026-11-12', '2026-11-13', '2026-11-14', '2026-11-15']);
     expect(calendar.find(day => day.date === '2026-11-13')?.schedule?.lessons[0].subject).toBe('Алгебра');
     expect(calendar.find(day => day.date === '2026-11-14')?.schedule).toEqual({ date: '2026-11-14', lessons: [] });
   });
   it('does not silently show another day when tomorrow was not returned by the API', () => {
     const calendar = scheduleCalendar([{ date: '2026-11-12', lessons: [] }], '2026-11-12');
-    expect(calendar.map(day => day.date)).toEqual(['2026-11-12', '2026-11-13', '2026-11-14']);
+    expect(calendar).toHaveLength(7);
     expect(calendar.find(day => day.date === '2026-11-13')?.schedule).toBeNull();
   });
   it('handles tomorrow and the day after across month and year boundaries', () => {

@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { DiaryDay } from '../../shared/diary';
 import { schoolDay, SCHOOL_TIME_ZONE } from '../services/feedService';
-import { scheduleCalendar, schoolDateAfter } from '../services/scheduleService';
+import { scheduleCalendar } from '../services/scheduleService';
 
 const dateLabel = (date: string, weekday = false) => new Intl.DateTimeFormat('ru-RU', {
   timeZone: SCHOOL_TIME_ZONE, day: 'numeric', month: 'short', ...(weekday ? { weekday: 'short' as const } : {}),
@@ -10,36 +10,22 @@ const dateLabel = (date: string, weekday = false) => new Intl.DateTimeFormat('ru
 export function LiveScheduleView({ days, startDate, endDate }: { days: DiaryDay[]; startDate?: string; endDate?: string }) {
   const [today, setToday] = useState(() => schoolDay(Date.now()));
   const [selection, setSelection] = useState<string | null>(null);
-  const selectedDate = selection || today;
   const calendar = scheduleCalendar(days, today);
+  const selectedDate = selection && calendar.some(day => day.date === selection) ? selection : today;
   const current = calendar.find(day => day.date === selectedDate)?.schedule;
-  const track = useRef<HTMLDivElement>(null);
-  const selectedButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     const timer = setInterval(() => setToday(schoolDay(Date.now())), 60000);
     return () => clearInterval(timer);
   }, []);
-  useEffect(() => {
-    if (track.current && selectedButton.current) track.current.scrollTo({
-      left: selectedButton.current.offsetLeft - (track.current.clientWidth - selectedButton.current.clientWidth) / 2,
-      behavior: 'smooth',
-    });
-  }, [selectedDate, days]);
   const outsideRange = (startDate && selectedDate < startDate) || (endDate && selectedDate > endDate);
   return <section className="min-w-0 space-y-3">
     <h2 className="font-bold">Расписание</h2>
-    <div className="grid grid-cols-3 gap-2">
-      {['Сегодня', 'Завтра', 'Послезавтра'].map((label, offset) => {
-        const date = schoolDateAfter(today, offset);
-        return <button key={label} aria-pressed={date === selectedDate} onClick={() => setSelection(offset === 0 ? null : date)}
-          className={`rounded-xl border px-2 py-2.5 text-center ${date === selectedDate ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-600'}`}>
-          <span className="block text-xs font-semibold">{label}</span><span className={`mt-1 block text-[11px] ${date === selectedDate ? 'text-blue-100' : 'text-slate-500'}`}>{dateLabel(date)}</span>
-        </button>;
-      })}
-    </div>
-    <div ref={track} className="relative flex gap-2 overflow-x-auto pb-2" aria-label="Даты расписания">
-      {calendar.map(day => <button key={day.date} ref={day.date === selectedDate ? selectedButton : undefined} onClick={() => setSelection(day.date === today ? null : day.date)} aria-pressed={day.date === selectedDate}
-        className={`rounded-xl px-3 py-2 shrink-0 text-xs border ${day.date === selectedDate ? 'bg-blue-600 border-blue-500' : 'bg-slate-900 border-slate-800 text-slate-400'}`}>{dateLabel(day.date, true)}</button>)}
+    <div className="grid grid-cols-7 gap-1" aria-label="Даты расписания">
+      {calendar.map(day => <button key={day.date} onClick={() => setSelection(day.date === today ? null : day.date)} aria-pressed={day.date === selectedDate} aria-label={`${day.date === today ? 'Сегодня, ' : ''}${dateLabel(day.date, true)}`} aria-current={day.date === today ? 'date' : undefined}
+        className={`min-w-0 rounded-xl px-0.5 py-2 text-center border ${day.date === selectedDate ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600'}`}>
+        <span className="block text-[9px] leading-4">{day.date === today ? 'Сегодня' : new Intl.DateTimeFormat('ru-RU', { timeZone: SCHOOL_TIME_ZONE, weekday: 'short' }).format(new Date(`${day.date}T12:00:00+08:00`))}</span>
+        <span className="mt-0.5 block text-lg font-semibold leading-6">{Number(day.date.slice(8, 10))}</span>
+      </button>)}
     </div>
     <h3 className="text-sm font-semibold">{dateLabel(selectedDate, true)}</h3>
     {!current ? <p role="status" className="rounded-xl border border-slate-800 p-4 text-sm text-slate-400">{outsideRange

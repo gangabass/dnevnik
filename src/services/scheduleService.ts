@@ -6,6 +6,8 @@ export function schoolDateAfter(date: string, offset: number): string {
 }
 export function scheduleCalendar(days: DiaryDay[], today: string) {
   const known = new Map(days.map(day => [day.date, day]));
-  const dates = new Set([...known.keys(), today, schoolDateAfter(today, 1), schoolDateAfter(today, 2)]);
-  return [...dates].sort().map(date => ({ date, schedule: known.get(date) ?? null }));
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = schoolDateAfter(today, index - 3);
+    return { date, schedule: known.get(date) ?? null };
+  });
 }
