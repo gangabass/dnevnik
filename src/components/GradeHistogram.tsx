@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { DiaryGrade, GradeHistogram as Histogram } from '../../shared/diary';
 import { getGradeHistogram } from '../services/apiService';
 import { histogramGroups, peopleCount } from '../services/histogramService';
+const gradeColors: Record<string, string> = { '5': 'bg-emerald-600', '4': 'bg-blue-600', '3': 'bg-amber-600', '2': 'bg-red-600' };
 
 export function GradeHistogram({ grade, token }: { grade: DiaryGrade; token: string }) {
   const [groups, setGroups] = useState<Histogram[] | null>(null);
@@ -25,7 +26,7 @@ export function GradeHistogram({ grade, token }: { grade: DiaryGrade; token: str
       : groups.map(group => <div key={group.markNumber} className="mt-3">
         {groups.length > 1 && <p className="mb-2 text-xs text-slate-400">Оценка {group.markNumber + 1}</p>}
         <ul className="space-y-1.5">{group.marks.map(mark => <li key={mark.value} className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm ${mark.value === grade.value ? 'bg-blue-500/15 text-blue-100' : 'bg-slate-950/50 text-slate-300'}`}>
-          <span className="w-6 text-center text-lg font-bold">{mark.value}</span><span aria-hidden="true" className="text-slate-600">—</span><span>{peopleCount(mark.count)}</span>
+          <span className={`inline-flex h-10 min-w-10 shrink-0 items-center justify-center rounded-xl px-2 text-lg font-bold text-white ${gradeColors[mark.value] || 'bg-slate-700'}`}>{mark.value}</span><span aria-hidden="true" className="text-slate-600">—</span><span>{peopleCount(mark.count)}</span>
         </li>)}</ul>
       </div>)}
   </section>;
