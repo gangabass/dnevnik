@@ -4,6 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "build:server": "esbuild worker/src/index.ts --bundle --platform=node --format=esm --target=node24 --outfile=server/generated/worker.mjs",
+    "test:server": "npm run build:server && node --test server/test/*.test.mjs",
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",

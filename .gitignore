@@ -6,3 +6,10 @@ coverage/
 *.log
 .env*
 !.env.example
+server/generated/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+push-export.sql
+private-backup/
+server/.ssh-deploy/

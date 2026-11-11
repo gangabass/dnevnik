@@ -1,6 +1,7 @@
 /// <reference types="node" />
 import { runInNewContext } from 'node:vm';
-import { DatabaseSync } from 'node:sqlite';
+import { SqliteDatabase } from '../../server/sqlite.mjs';
+import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PushStore, type Device, type Outbox } from '../src/push/store';
@@ -9,18 +10,8 @@ import { pushRoute } from '../src/push/routes';
 import { runPushCron } from '../src/push/poller';
 import type { PushEnv } from '../src/push/env';
 
-class SqliteD1 {
-  sql = new DatabaseSync(':memory:');
-  constructor(){this.sql.exec(readFileSync(new URL('../migrations/0001_push.sql',import.meta.url),'utf8'));}
-  prepare(sql:string){
-    const stmt = this.sql.prepare(sql); let params: any[]=[];
-    const wrapper:any={bind:(...values:any[])=>{params=values;return wrapper;},
-      first:async()=>stmt.get(...params)||null,
-      all:async()=>({results:stmt.all(...params),success:true}),
-      run:async()=>({success:true,meta:{changes:Number(stmt.run(...params).changes)}})};
-    return wrapper;
-  }
-  async batch(statements:any[]){this.sql.exec('BEGIN');try{const results=[];for(const statement of statements)results.push(await statement.run());this.sql.exec('COMMIT');return results;}catch(error){this.sql.exec('ROLLBACK');throw error;}}
+class SqliteD1 extends SqliteDatabase {
+  constructor(){super(':memory:',fileURLToPath(new URL('../migrations/',import.meta.url)));}
 }
 const id='11111111-1111-4111-8111-111111111111';
 const managementKey=base64url(new Uint8Array(32).fill(8));

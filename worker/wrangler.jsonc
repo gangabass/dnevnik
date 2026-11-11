@@ -7,7 +7,7 @@
 	"name": "dnevnik",
 	"main": "src/index.ts",
 	"compatibility_date": "2026-11-04",
-  "triggers": { "crons": ["*/5 * * * *"] },
+  "triggers": { "crons": [] },
   "d1_databases": [{
     "binding": "PUSH_DB",
     "database_name": "dnevnik-push",

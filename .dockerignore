@@ -1,0 +1,14 @@
+**/node_modules
+.git
+dist
+dev-dist
+**/.env*
+**/.dev.vars*
+**/.push-secrets.json
+**/.wrangler
+python_api
+**/*.sqlite*
+server/generated
+**/push-export.sql
+**/private-backup
+**/.ssh-deploy

@@ -1,6 +1,6 @@
 import type { DiaryResponse, StudentChoice } from '../../shared/diary';
 import type { HomeworkItem } from '../types';
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://dnevnik.gangabass.workers.dev').replace(/\/+$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://gangabass.duckdns.org/dnevnik-api').replace(/\/+$/, '');
 export class ApiError extends Error {
   constructor(message: string, public status: number) { super(message); this.name = 'ApiError'; }
 }

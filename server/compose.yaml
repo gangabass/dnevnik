@@ -1,0 +1,25 @@
+services:
+  dnevnik-api:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    init: true
+    env_file: .env
+    volumes:
+      - dnevnik-data:/data
+    networks:
+      - dnevnik-proxy
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  dnevnik-data:
+
+networks:
+  dnevnik-proxy:
+    external: true
