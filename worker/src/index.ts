@@ -38,9 +38,17 @@ export default {
     if (!token || token.length > 4096) return json({ error: 'Введите токен Дневник.ру.' }, 401);
     try {
       if (url.pathname === '/api/marks/histogram') {
-        const workId = url.searchParams.get('workId') || '';
-        if (!/^[1-9]\d{0,19}$/.test(workId)) return json({ error: 'Некорректный идентификатор работы.' }, 400);
-        return json({ ok: true, groups: normalizeHistogram(await dnevnik(`works/${workId}/marks/histogram`, token)) });
+        let workId = url.searchParams.get('workId') || '';
+        let markNumber: number | undefined;
+        if (!workId) {
+          const markId = url.searchParams.get('markId') || '';
+          if (!/^[1-9]\d{0,19}$/.test(markId)) return json({ error: 'Некорректный идентификатор оценки.' }, 400);
+          const mark = row(await dnevnik(`marks/${markId}`, token));
+          workId = id(mark.work_str ?? mark.work);
+          if (Number.isSafeInteger(mark.number) && Number(mark.number) >= 0) markNumber = Number(mark.number);
+        }
+        if (!/^[1-9]\d{0,19}$/.test(workId)) return json({ error: 'Не удалось определить работу для этой оценки.' }, 400);
+        return json({ ok: true, groups: normalizeHistogram(await dnevnik(`works/${workId}/marks/histogram`, token)), markNumber });
       }
       if (url.pathname === '/api/context') {
         return json({ ok: true, students: studentChoices(await dnevnik('users/me/context', token)) });

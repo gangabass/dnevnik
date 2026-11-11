@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { currentQuarter, currentWeek, gradeRangeChunks, loadPeriodGrades } from '../../src/services/gradePeriodService';
+import { currentQuarter, previousQuarters, currentWeek, gradeRangeChunks, loadPeriodGrades } from '../../src/services/gradePeriodService';
 import worker from '../src';
 afterEach(() => vi.unstubAllGlobals());
 describe('Grade periods', () => {
@@ -9,6 +9,8 @@ describe('Grade periods', () => {
     expect(currentQuarter([first, second], '2026-11-12')).toEqual(second);
     expect(currentQuarter([first, second], '2026-11-02')).toEqual(first);
     expect(currentQuarter([], '2026-11-12')).toBeNull();
+    expect(previousQuarters([first, second, { ...second, id: 'future', start: '2027-01-11', end: '2027-03-26' }], '2026-11-12')).toEqual([first]);
+    expect(previousQuarters([first, second], '2026-11-02')).toEqual([]);
   });
   it('uses Monday to Sunday even when the week crosses a year boundary', () => {
     expect(currentWeek('2026-11-12')).toEqual({ start: '2026-11-09', end: '2026-11-15' });

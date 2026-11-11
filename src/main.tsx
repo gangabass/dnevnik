@@ -15,6 +15,7 @@ registerSW({
     };
     window.addEventListener('focus', check);
     document.addEventListener('visibilitychange', check);
+    window.setInterval(check, 60000);
     check();
   },
 });

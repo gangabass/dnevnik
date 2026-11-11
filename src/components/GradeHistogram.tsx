@@ -9,17 +9,16 @@ export function GradeHistogram({ grade, token }: { grade: DiaryGrade; token: str
   const [revision, setRevision] = useState(0);
   useEffect(() => {
     setGroups(null); setError('');
-    if (!token || !grade.workId) return;
+    if (!token) return;
     const controller = new AbortController();
-    getGradeHistogram(token, grade.workId, controller.signal).then(result => {
-      if (!controller.signal.aborted) setGroups(histogramGroups(result.groups, grade.markNumber));
+    getGradeHistogram(token, grade, controller.signal).then(result => {
+      if (!controller.signal.aborted) setGroups(histogramGroups(result.groups, grade.markNumber ?? result.markNumber));
     }).catch(error => { if (!controller.signal.aborted) setError(error instanceof Error ? error.message : 'Не удалось загрузить статистику.'); });
     return () => controller.abort();
-  }, [token, grade.workId, grade.markNumber, revision]);
+  }, [token, grade.id, grade.workId, grade.markNumber, revision]);
   return <section className="mt-5 border-t border-slate-700 pt-4" aria-label="Распределение оценок класса">
     <h4 className="text-sm font-semibold">Оценки класса за эту работу</h4>
-    {!grade.workId ? <p className="mt-2 text-xs text-slate-400">Обновите дневник, чтобы загрузить статистику этой оценки.</p>
-      : !token ? <p className="mt-2 text-xs text-slate-400">Введите токен, чтобы посмотреть распределение оценок.</p>
+    {!token ? <p className="mt-2 text-xs text-slate-400">Введите токен, чтобы посмотреть распределение оценок.</p>
       : error ? <div role="status" className="mt-2 text-xs text-slate-400"><p>{error}</p><button onClick={() => setRevision(value => value + 1)} className="mt-2 text-blue-300 underline">Повторить</button></div>
       : groups === null ? <p role="status" className="mt-2 text-xs text-slate-400">Загружаем распределение…</p>
       : !groups.some(group => group.marks.length) ? <p className="mt-2 text-xs text-slate-400">Статистики для этой оценки пока нет.</p>

@@ -1,4 +1,4 @@
-import type { DiaryResponse, StudentChoice, ReportingPeriod, GradeHistogram } from '../../shared/diary';
+import type { DiaryResponse, StudentChoice, ReportingPeriod, GradeHistogram, DiaryGrade } from '../../shared/diary';
 import type { HomeworkItem } from '../types';
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://gangabass.duckdns.org/dnevnik-api').replace(/\/+$/, '');
 export class ApiError extends Error {
@@ -33,8 +33,10 @@ export function getHomework(token: string, personId: string, schoolId: string, s
   });
 }
 export { API_BASE_URL };
-export function getGradeHistogram(token: string, workId: string, signal?: AbortSignal) {
-  return apiRequest<{ ok: true; groups: GradeHistogram[] }>(`/api/marks/histogram?${new URLSearchParams({ workId })}`, { headers: { Authorization: `Bearer ${token}` }, signal });
+export function getGradeHistogram(token: string, grade: Pick<DiaryGrade, 'id' | 'workId'>, signal?: AbortSignal) {
+  const params = new URLSearchParams();
+  params.set(grade.workId ? 'workId' : 'markId', grade.workId || grade.id);
+  return apiRequest<{ ok: true; groups: GradeHistogram[]; markNumber?: number }>(`/api/marks/histogram?${params}`, { headers: { Authorization: `Bearer ${token}` }, signal });
 }
 export function getReportingPeriods(token: string, personId: string, schoolId: string, signal?: AbortSignal) {
   return apiRequest<{ ok: true; periods: ReportingPeriod[] }>(`/api/periods?${new URLSearchParams({ personId, schoolId })}`, { headers: { Authorization: `Bearer ${token}` }, signal });

@@ -38,6 +38,16 @@ describe('Anonymous grade histogram', () => {
     expect((await worker.fetch(new Request('https://app.test/api/marks/histogram?workId=invalid', { headers: { Authorization: 'Bearer synthetic' } }), {})).status).toBe(400);
     expect(fetcher).not.toHaveBeenCalled();
   });
+  it('resolves a saved grade without a work ID and retains its double-grade position', async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(Response.json({ work_str: '9876543210123456789', number: 1, person: 'private' }))
+      .mockResolvedValueOnce(Response.json({ markNumbers: groups }));
+    vi.stubGlobal('fetch', fetcher);
+    const response = await worker.fetch(new Request('https://app.test/api/marks/histogram?markId=123', { headers: { Authorization: 'Bearer synthetic' } }), {});
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, groups, markNumber: 1 });
+    expect(fetcher.mock.calls[0][0]).toBe('https://api.dnevnik.ru/v2/marks/123');
+    expect(fetcher.mock.calls[1][0]).toContain('works/9876543210123456789/marks/histogram');
+  });
   it('keeps upstream access failures as failures instead of showing a fabricated zero distribution', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 403 })));
     expect((await worker.fetch(new Request('https://app.test/api/marks/histogram?workId=1', { headers: { Authorization: 'Bearer synthetic' } }), {})).status).toBe(403);

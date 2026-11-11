@@ -11,6 +11,11 @@ export function currentQuarter(periods: ReportingPeriod[], today: string): Repor
   return quarters.find(period => period.start <= today && period.end >= today)
     ?? quarters.filter(period => period.start <= today).at(-1) ?? quarters[0] ?? null;
 }
+export function previousQuarters(periods: ReportingPeriod[], today: string): ReportingPeriod[] {
+  const current = currentQuarter(periods, today);
+  return periods.filter(period => period.type === 'Quarter' && period.end < today && period.id !== current?.id)
+    .sort((a, b) => b.start.localeCompare(a.start));
+}
 export function gradeRangeChunks(range: GradeRange): GradeRange[] {
   const valid = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
   if (!valid(range.start) || !valid(range.end) || range.start > range.end) throw new Error('Укажите корректные даты начала и конца периода.');
