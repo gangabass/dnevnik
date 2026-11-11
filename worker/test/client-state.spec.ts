@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { average, mergeDiary, newMarks } from '../../src/services/diaryService';
+import { average, mergeDiary, newMarks, fivesToReach45, fiveWord } from '../../src/services/diaryService';
 import type { DiaryGrade, DiaryResponse, HomeworkCache } from '../../shared/diary';
 const grade: DiaryGrade = { id: '1', subject: 'Алгебра', subjectId: '2', value: '4', numericValue: 4, workType: 'Ответ', date: '2026-11-10T12:00:00', lessonDate: '', teacherName: '', topic: '', period: 1, weight: 1, includeInAverage: true };
 const response: DiaryResponse = { ok: true, student: { schoolName: '', className: '', usesWeightedAverage: false }, homework: [], grades: [grade], schedule: [], warnings: [] };
@@ -28,5 +28,17 @@ describe('Diary cache and alerts', () => {
     expect(average([grade, { ...grade, numericValue: 2, includeInAverage: false }])).toBe(4);
     expect(average([{ ...grade, numericValue: null }])).toBeNull();
     expect(average([{ ...grade, weight: null }])).toBeNull();
+  });
+  it('calculates the minimum extra fives needed for an exact average of 4.5', () => {
+    const marks = (values: number[]) => values.map(numericValue => ({ ...grade, numericValue }));
+    expect(fivesToReach45(marks([3, 4]))).toBe(4);
+    expect(fivesToReach45(marks([4]))).toBe(1);
+    expect(fivesToReach45(marks([4, 5]))).toBe(0);
+    expect(fivesToReach45(marks([5]))).toBe(0);
+    expect(fivesToReach45([...marks([4]), { ...grade, numericValue: 2, includeInAverage: false }])).toBe(1);
+    expect(fivesToReach45([{ ...grade, weight: null }])).toBeNull();
+    expect(fivesToReach45([{ ...grade, weight: 2 }])).toBeNull();
+    expect(fivesToReach45([])).toBeNull();
+    expect([1, 4, 5, 11, 21].map(fiveWord)).toEqual(['пятёрку', 'пятёрки', 'пятёрок', 'пятёрок', 'пятёрку']);
   });
 });

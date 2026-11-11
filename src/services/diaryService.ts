@@ -33,3 +33,15 @@ export function average(grades: DiaryGrade[]): number | null {
   const total = included.reduce((sum, grade) => sum + (grade.weight || 0), 0);
   return total ? included.reduce((sum, grade) => sum + grade.numericValue! * grade.weight!, 0) / total : null;
 }
+export function fivesToReach45(grades: DiaryGrade[]): number | null {
+  const included = grades.filter(grade => grade.includeInAverage && grade.numericValue !== null);
+  // A new grade's weight is unknown for weighted journals. Only predict unit-weight grades.
+  if (!included.length || included.some(grade => grade.weight !== 1)) return null;
+  const sum = included.reduce((total, grade) => total + grade.numericValue!, 0);
+  // (sum + 5*x) / (count + x) >= 4.5, without rounding the current average.
+  return Math.max(0, Math.ceil(9 * included.length - 2 * sum));
+}
+export function fiveWord(count: number): string {
+  const form = new Intl.PluralRules('ru-RU').select(count);
+  return form === 'one' ? 'пятёрку' : form === 'few' ? 'пятёрки' : 'пятёрок';
+}
