@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Atom, BookOpen, ChevronLeft, ChevronRight, Dumbbell, FlaskConical, Languages, Music, Palette, Ruler, X } from 'lucide-react';
+import { Atom, BookOpen, ChevronLeft, ChevronRight, Dumbbell, FlaskConical, Languages, Music, Palette, Ruler } from 'lucide-react';
+import { GradeDetails } from './GradeDetails';
 import type { DiaryGrade } from '../../shared/diary';
-import { feedDays, feedItems, issuedTimestamp, lessonCaption, SCHOOL_TIME_ZONE, type FeedItem } from '../services/feedService';
+import { feedDays, feedItems, lessonCaption, type FeedItem } from '../services/feedService';
 
 function subjectIcon(subject: string) {
   if (/физкультур|физическ.*культур/i.test(subject)) return Dumbbell;
@@ -53,24 +54,7 @@ function GradeRow({ items, readIds, onSelect }: { items: FeedItem[]; readIds: st
   </div>;
 }
 
-function GradeDetails({ grade, onClose }: { grade: DiaryGrade; onClose: () => void }) {
-  const dialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => { dialog.current?.showModal(); }, []);
-  const timestamp = issuedTimestamp(grade.date);
-  const lessonTimestamp = issuedTimestamp(grade.lessonDate.slice(0, 10));
-  return <dialog ref={dialog} onClose={onClose} onClick={event => { if (event.target === event.currentTarget) dialog.current?.close(); }}
-    className="m-auto w-[calc(100%_-_2rem)] max-w-sm rounded-2xl border border-slate-700 bg-slate-900 p-5 text-slate-100 shadow-2xl backdrop:bg-black/70" aria-labelledby="feed-grade-title">
-    <div className="flex items-start justify-between gap-3"><h3 id="feed-grade-title" className="font-bold">{grade.subject}: {grade.value}</h3><button onClick={() => dialog.current?.close()} aria-label="Закрыть" className="rounded-lg p-1 text-slate-400 hover:text-white"><X size={20} /></button></div>
-    <div className="mt-4 space-y-3 text-sm"><p>{grade.workType}</p>
-      <p className="text-slate-400">Выставлена: {timestamp === null ? 'дата не указана' : new Intl.DateTimeFormat('ru-RU', { timeZone: SCHOOL_TIME_ZONE, dateStyle: 'long', timeStyle: 'short' }).format(timestamp)}</p>
-      {lessonTimestamp !== null && <p className="text-slate-400">Урок: {new Intl.DateTimeFormat('ru-RU', { timeZone: SCHOOL_TIME_ZONE, dateStyle: 'long' }).format(lessonTimestamp)}</p>}
-      {grade.teacherName && <p>{grade.teacherName}</p>}{grade.topic && <p>{grade.topic}</p>}
-      <p className="text-xs text-slate-500">{grade.includeInAverage ? 'Учитывается в среднем' : 'Не учитывается в среднем'}</p>
-    </div>
-  </dialog>;
-}
-
-export function DiaryFeedView({ grades, readIds, onRead }: { grades: DiaryGrade[]; readIds: string[]; onRead: (ids: string[]) => void }) {
+export function DiaryFeedView({ grades, token, readIds, onRead }: { grades: DiaryGrade[]; token: string; readIds: string[]; onRead: (ids: string[]) => void }) {
   const [now, setNow] = useState(Date.now);
   const [selected, setSelected] = useState<DiaryGrade | null>(null);
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 60000); return () => clearInterval(timer); }, []);
@@ -86,6 +70,6 @@ export function DiaryFeedView({ grades, readIds, onRead }: { grades: DiaryGrade[
         : <div className="rounded-xl border border-dashed border-slate-800 p-4 text-sm text-slate-400">Сегодня новых оценок пока нет.</div>}
     </section>)}
     {items.length > 0 && <p className="text-xs text-slate-500">Нажмите на оценку, чтобы посмотреть подробности. История показана за загруженный период.</p>}
-    {selected && <GradeDetails grade={selected} onClose={() => setSelected(null)} />}
+    {selected && <GradeDetails key={selected.id} grade={selected} token={token} onClose={() => setSelected(null)} />}
   </section>;
 }

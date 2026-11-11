@@ -1,4 +1,5 @@
 import { pushRoute } from './push/routes';
+import { normalizeHistogram } from './histogram';
 import { runPushCron } from './push/poller';
 import { ApiFailure, dnevnik } from './upstream';
 import { normalizeDiary, studentChoices } from './diary';
@@ -31,11 +32,16 @@ export default {
     if (request.method !== 'GET') return json({ error: 'Method not allowed' }, 405);
     if (url.pathname === '/') return json({ service: 'Dnevnik.ru API', status: 'running', version: '0.3.0' });
     if (url.pathname === '/api/health') return json({ ok: true, service: 'dnevnik-worker', timestamp: new Date().toISOString() });
-    if (!['/api/profile', '/api/homework', '/api/context', '/api/diary', '/api/periods'].includes(url.pathname)) return json({ error: 'Not found' }, 404);
+    if (!['/api/profile', '/api/homework', '/api/context', '/api/diary', '/api/periods', '/api/marks/histogram'].includes(url.pathname)) return json({ error: 'Not found' }, 404);
     const authorization = request.headers.get('Authorization') ?? '';
     const token = /^Bearer ([^\s\x00-\x1f]+)$/.exec(authorization)?.[1];
     if (!token || token.length > 4096) return json({ error: 'Введите токен Дневник.ру.' }, 401);
     try {
+      if (url.pathname === '/api/marks/histogram') {
+        const workId = url.searchParams.get('workId') || '';
+        if (!/^[1-9]\d{0,19}$/.test(workId)) return json({ error: 'Некорректный идентификатор работы.' }, 400);
+        return json({ ok: true, groups: normalizeHistogram(await dnevnik(`works/${workId}/marks/histogram`, token)) });
+      }
       if (url.pathname === '/api/context') {
         return json({ ok: true, students: studentChoices(await dnevnik('users/me/context', token)) });
       }

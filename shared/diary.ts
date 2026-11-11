@@ -1,10 +1,12 @@
 import type { HomeworkItem } from '../src/types';
 export interface ReportingPeriod { id: string; name: string; type: string; start: string; end: string }
 export interface DiaryGrade {
+  workId?: string; markNumber?: number;
   id: string; subject: string; subjectId: string; value: string; numericValue: number | null;
   workType: string; date: string; lessonDate: string; teacherName: string; topic: string;
   period: number | null; weight: number | null; includeInAverage: boolean;
 }
+export interface GradeHistogram { markNumber: number; marks: { value: string; count: number }[] }
 export interface DiaryLesson {
   id: string; number: number; subject: string; topic: string; hours: string;
   room: string; teacherName: string; homework: string;

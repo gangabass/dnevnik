@@ -34,6 +34,7 @@ export function normalizeDiary(marks: unknown, schedules: unknown[], homework: u
     const numeric = Number(mark.value);
     return {
       id: key(mark), subjectId, subject: String(subjects.get(subjectId)?.name ?? 'Предмет не указан'),
+      workId: id(mark.work_str ?? mark.work), markNumber: typeof mark.number === 'number' ? mark.number : undefined,
       value: String(mark.textValue ?? mark.value ?? ''),
       numericValue: mark.type === 'Mark5' && [2, 3, 4, 5].includes(numeric) ? numeric : null,
       workType: String(workTypes.get(id(mark.workType ?? work.workType))?.name ?? 'Вид работы не указан'),

@@ -177,7 +177,7 @@ export default function App() {
         {activeTab === 'homework' && connection && <HomeworkView homework={homework} onToggleHomework={toggleHomework} />}
         {activeTab === 'grades' && <LiveGradesView token={token} connection={connection} refresh={refresh} />}
         {activeTab === 'schedule' && <LiveScheduleView days={cache?.schedule || []} startDate={cache?.sectionDates?.schedule?.start || cache?.startDate} endDate={cache?.sectionDates?.schedule?.end || cache?.endDate} />}
-        {activeTab === 'feed' && <DiaryFeedView grades={grades} readIds={cache?.readFeedIds || []} onRead={markFeedRead} />}
+        {activeTab === 'feed' && <DiaryFeedView grades={grades} token={token} readIds={cache?.readFeedIds || []} onRead={markFeedRead} />}
         {activeTab === 'push' && <div className="space-y-4"><BackgroundPushSettings token={token} connection={connection} onEnabled={() => { const next={...options,notifications:false};setOptions(next);saveLiveOptions(next); }} /><LiveSettingsView options={options} onChange={next => { setOptions(next); saveLiveOptions(next); }} onOpenAuth={() => setAuthOpen(true)} /></div>}
 
       </main>

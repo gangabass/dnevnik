@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { DiaryGrade, ReportingPeriod, Connection } from '../../shared/diary';
+import { GradeDetails } from './GradeDetails';
 import { average } from '../services/diaryService';
 import { schoolDay } from '../services/feedService';
 import { getDiary, getReportingPeriods } from '../services/apiService';
@@ -60,6 +61,6 @@ export function LiveGradesView({ token, connection, refresh }: { token: string; 
     </div>
     {!busy && !error && token && range && loaded?.key === rangeKey && !filtered.length && <p className="text-sm text-slate-400 p-4">За выбранный период оценок нет.</p>}
     {subjects.map(subject => { const list = filtered.filter(grade => grade.subject === subject); const mean = average(list); return <article key={subject} className="p-4 rounded-2xl bg-slate-900 border border-slate-800"><div className="flex justify-between gap-2"><h3 className="font-semibold text-sm">{subject}</h3><span className="text-sm text-blue-300">{mean === null ? '—' : mean.toFixed(2)}</span></div><div className="flex flex-wrap gap-2 mt-3">{list.map(grade => <button key={grade.id} onClick={() => setSelected(grade)} title={`${grade.workType}, ${grade.date.slice(0, 10)}`} className={`min-w-10 px-3 py-2 rounded-xl font-bold ${scoreClass(grade.numericValue)}`}>{grade.value}</button>)}</div></article>; })}
-    {selected && <div role="dialog" aria-modal="true" aria-label="Подробности оценки" className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"><section className="bg-slate-900 border border-slate-700 p-5 rounded-2xl w-full max-w-sm space-y-3"><div className="flex justify-between"><h3 className="font-bold">{selected.subject}: {selected.value}</h3><button onClick={() => setSelected(null)} aria-label="Закрыть">✕</button></div><p className="text-sm">{selected.workType}</p><p className="text-sm text-slate-400">Выставлена: {new Date(selected.date).toLocaleString('ru-RU')}</p>{selected.lessonDate && <p className="text-sm text-slate-400">Урок: {selected.lessonDate.slice(0, 10)}</p>}<p className="text-sm">{selected.teacherName}</p>{selected.topic && <p className="text-sm">{selected.topic}</p>}<p className="text-xs text-slate-400">{selected.includeInAverage ? 'Учитывается в среднем' : 'Не учитывается в среднем'} · Вес: {selected.weight ?? 'не передан API'}</p></section></div>}
+    {selected && <GradeDetails key={selected.id} grade={selected} token={token} onClose={() => setSelected(null)} />}
   </section>;
 }

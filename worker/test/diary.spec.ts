@@ -32,7 +32,7 @@ function upstream(path: string) {
 describe('Diary normalization', () => {
   it('joins marks with lessons, works, nested teachers and work types', () => {
     const result = normalizeDiary(marks, [schedule], homework, groups, false);
-    expect(result.grades[0]).toMatchObject({ id: mark, subject: 'Алгебра', numericValue: 4, weight: 1, period: 2, teacherName: 'Учитель', workType: 'Самостоятельная работа', topic: 'Уравнения' });
+    expect(result.grades[0]).toMatchObject({ id: mark, workId: work, subject: 'Алгебра', numericValue: 4, weight: 1, period: 2, teacherName: 'Учитель', workType: 'Самостоятельная работа', topic: 'Уравнения' });
     expect(result.schedule[0].lessons[0]).toMatchObject({ hours: '14:00 - 14:40', room: '103', homework: 'Упр. 10' });
   });
   it('does not invent weights, quarters, numeric values or lesson times', () => {
