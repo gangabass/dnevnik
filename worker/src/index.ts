@@ -31,7 +31,7 @@ export default {
     if (request.method !== 'GET') return json({ error: 'Method not allowed' }, 405);
     if (url.pathname === '/') return json({ service: 'Dnevnik.ru API', status: 'running', version: '0.3.0' });
     if (url.pathname === '/api/health') return json({ ok: true, service: 'dnevnik-worker', timestamp: new Date().toISOString() });
-    if (!['/api/profile', '/api/homework', '/api/context', '/api/diary'].includes(url.pathname)) return json({ error: 'Not found' }, 404);
+    if (!['/api/profile', '/api/homework', '/api/context', '/api/diary', '/api/periods'].includes(url.pathname)) return json({ error: 'Not found' }, 404);
     const authorization = request.headers.get('Authorization') ?? '';
     const token = /^Bearer ([^\s\x00-\x1f]+)$/.exec(authorization)?.[1];
     if (!token || token.length > 4096) return json({ error: 'Введите токен Дневник.ру.' }, 401);
@@ -56,6 +56,18 @@ export default {
       const start = url.searchParams.get('startDate');
       const end = url.searchParams.get('endDate');
       if (!/^[1-9]\d{0,19}$/.test(person) || !/^[1-9]\d{0,19}$/.test(school)) return json({ error: 'Укажите корректные ID ученика и школы.' }, 400);
+      if (url.pathname === '/api/periods') {
+        const groups = rows(await dnevnik(`persons/${person}/schools/${school}/edu-groups`, token))
+          .filter(group => group.status === 'Active' && /^[1-9]\d{0,19}$/.test(key(group)));
+        const main = groups.find(group => group.type === 'Grade') ?? groups.find(group => group.type === 'Group') ?? groups[0];
+        if (!main) throw new ApiFailure('Не удалось определить класс ученика.', 502);
+        const source = await dnevnik(`edu-groups/${key(main)}/reporting-periods`, token);
+        if (!Array.isArray(source)) throw new ApiFailure('Не удалось получить учебные периоды школы.', 502);
+        const periods = rows(source).map(period => ({ id: key(period), name: String(period.name ?? ''), type: String(period.type ?? ''),
+          start: String(period.start ?? '').slice(0, 10), end: String(period.finish ?? '').slice(0, 10),
+        })).filter(period => validDate(period.start) && validDate(period.end) && period.start <= period.end);
+        return json({ ok: true, periods });
+      }
       if (!validDate(start) || !validDate(end) || start > end || Date.parse(end) - Date.parse(start) > 31 * 86400000) {
         return json({ error: 'Выберите период до 31 дня с корректными датами.' }, 400);
       }

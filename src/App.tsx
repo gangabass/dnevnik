@@ -163,19 +163,19 @@ export default function App() {
           {!connection && <p className="text-sm text-slate-400">Введите токен Дневник.ру и укажите ученика и школу, чтобы загрузить оценки, расписание и домашние задания.</p>}
           {connection && <>
             {!token && <p className="text-xs text-amber-300">Для обновления данных введите токен. Сохранённые данные доступны без него.</p>}
-            <div className="grid grid-cols-2 gap-2">
+            {activeTab !== 'grades' && <div className="grid grid-cols-2 gap-2">
               <label className="text-xs text-slate-400">С даты<input aria-label="Начало периода" type="date" className={inputClass} value={range.start} onChange={event => setRange({ ...range, start: event.target.value })} /></label>
               <label className="text-xs text-slate-400">По дату<input aria-label="Конец периода" type="date" className={inputClass} value={range.end} onChange={event => setRange({ ...range, end: event.target.value })} /></label>
-            </div>
+            </div>}
             <button disabled={busy || !token || !range.start || !range.end || range.start > range.end} onClick={() => { setAppliedRange(range); setRefresh(value => value + 1); }} className="w-full flex justify-center items-center gap-2 rounded-xl bg-blue-600 py-2 text-sm disabled:opacity-50"><RefreshCw size={15} className={busy ? 'animate-spin' : ''} />{busy ? 'Загружаем…' : 'Обновить дневник'}</button>
           </>}
           {error && <p role="alert" className="text-sm text-red-300">{error}{error.includes('Токен') && <button className="block mt-2 underline" onClick={() => setAuthOpen(true)}>Ввести новый токен</button>}</p>}
           {warnings.length > 0 && <div role="status" className="text-xs text-amber-300 space-y-1">{warnings.map((warning, index) => <p key={index}>{{ homework: 'ДЗ', grades: 'Оценки', schedule: 'Расписание', profile: 'Школа' }[warning.section]}: {warning.message} Если раздел не обновился, показаны ранее сохранённые данные.</p>)}</div>}
-          {cache && <div className="text-xs text-slate-500 space-y-1">{(['homework', 'grades', 'schedule'] as const).map(section => { const stamp = cache.sectionDates?.[section]; return stamp && <p key={section}>{{ homework: 'ДЗ', grades: 'Оценки', schedule: 'Расписание' }[section]}: {stamp.start} — {stamp.end} · {new Date(stamp.updatedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</p>; })}<p>Отметки выполнения ДЗ хранятся на этом устройстве.</p></div>}
+          {cache && activeTab !== 'grades' && <div className="text-xs text-slate-500 space-y-1">{(['homework', 'grades', 'schedule'] as const).map(section => { const stamp = cache.sectionDates?.[section]; return stamp && <p key={section}>{{ homework: 'ДЗ', grades: 'Оценки', schedule: 'Расписание' }[section]}: {stamp.start} — {stamp.end} · {new Date(stamp.updatedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</p>; })}<p>Отметки выполнения ДЗ хранятся на этом устройстве.</p></div>}
 
         </section>
         {activeTab === 'homework' && connection && <HomeworkView homework={homework} onToggleHomework={toggleHomework} />}
-        {activeTab === 'grades' && <LiveGradesView grades={grades} />}
+        {activeTab === 'grades' && <LiveGradesView token={token} connection={connection} refresh={refresh} />}
         {activeTab === 'schedule' && <LiveScheduleView days={cache?.schedule || []} startDate={cache?.sectionDates?.schedule?.start || cache?.startDate} endDate={cache?.sectionDates?.schedule?.end || cache?.endDate} />}
         {activeTab === 'feed' && <DiaryFeedView grades={grades} readIds={cache?.readFeedIds || []} onRead={markFeedRead} />}
         {activeTab === 'push' && <div className="space-y-4"><BackgroundPushSettings token={token} connection={connection} onEnabled={() => { const next={...options,notifications:false};setOptions(next);saveLiveOptions(next); }} /><LiveSettingsView options={options} onChange={next => { setOptions(next); saveLiveOptions(next); }} onOpenAuth={() => setAuthOpen(true)} /></div>}

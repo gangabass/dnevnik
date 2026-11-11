@@ -1,4 +1,5 @@
 import type { HomeworkItem } from '../src/types';
+export interface ReportingPeriod { id: string; name: string; type: string; start: string; end: string }
 export interface DiaryGrade {
   id: string; subject: string; subjectId: string; value: string; numericValue: number | null;
   workType: string; date: string; lessonDate: string; teacherName: string; topic: string;
