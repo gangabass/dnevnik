@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { runInNewContext } from 'node:vm';
 import { SqliteDatabase } from '../../server/sqlite.mjs';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, URL as NodeURL } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PushStore, type Device, type Outbox } from '../src/push/store';
@@ -11,7 +11,7 @@ import { runPushCron } from '../src/push/poller';
 import type { PushEnv } from '../src/push/env';
 
 class SqliteD1 extends SqliteDatabase {
-  constructor(){super(':memory:',fileURLToPath(new URL('../migrations/',import.meta.url)));}
+  constructor(){super(':memory:',fileURLToPath(new NodeURL('../migrations/',import.meta.url)));}
 }
 const id='11111111-1111-4111-8111-111111111111';
 const managementKey=base64url(new Uint8Array(32).fill(8));
@@ -97,7 +97,7 @@ describe('Background service worker',()=>{
     const listeners:Record<string,(event:any)=>void>={};
     const shown:any[]=[];const pending:Promise<unknown>[]=[];
     const self={registration:{scope:'https://app.example/dnevnik/',showNotification:async(...args:any[])=>{shown.push(args);}},addEventListener:(name:string,handler:any)=>{listeners[name]=handler;}};
-    runInNewContext(readFileSync(new URL('../../public/push-sw.js',import.meta.url),'utf8'),{self,URL});
+    runInNewContext(readFileSync(new NodeURL('../../public/push-sw.js',import.meta.url),'utf8'),{self,URL});
     listeners.push({data:{json:()=>({title:'Оценка: 5',tag:'grade-1',url:'https://evil.example/collect'})},waitUntil:(promise:Promise<unknown>)=>pending.push(promise)});
     await Promise.all(pending);
     expect(shown[0][0]).toBe('Оценка: 5');expect(shown[0][1].tag).toBe('grade-1');expect(shown[0][1].renotify).toBe(false);
