@@ -8,8 +8,20 @@ export const connectionService = {
     try { return JSON.parse(localStorage.getItem(SETTINGS) || 'null'); } catch { return null; }
   },
   saveSettings(connection: Connection) { localStorage.setItem(SETTINGS, JSON.stringify(connection)); },
-  getToken(): string { try { return sessionStorage.getItem(TOKEN) || ''; } catch { return ''; } },
-  saveToken(token: string) { sessionStorage.setItem(TOKEN, token); },
+  getToken(): string {
+    try {
+      const saved = localStorage.getItem(TOKEN);
+      if (saved) return saved;
+      // Preserve an existing connection when upgrading from session-only storage.
+      const legacy = sessionStorage.getItem(TOKEN) || '';
+      if (legacy) this.saveToken(legacy);
+      return legacy;
+    } catch { return ''; }
+  },
+  saveToken(token: string) {
+    localStorage.setItem(TOKEN, token);
+    sessionStorage.removeItem(TOKEN);
+  },
   readCache(connection: Connection): HomeworkCache | null {
     try { return JSON.parse(localStorage.getItem(cacheKey(connection)) || 'null'); } catch { return null; }
   },
@@ -17,6 +29,7 @@ export const connectionService = {
     try { localStorage.setItem(cacheKey(connection), JSON.stringify(cache)); } catch { /* Still show data if storage is full. */ }
   },
   disconnect() {
+    localStorage.removeItem(TOKEN);
     sessionStorage.removeItem(TOKEN);
     localStorage.removeItem('dnevnik_live_options_v1');
     localStorage.removeItem(SETTINGS);

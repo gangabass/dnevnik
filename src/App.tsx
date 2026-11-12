@@ -53,7 +53,7 @@ export default function App() {
   cacheRef.current = cache;
   const { isInstallable, install } = usePWAInstall();
 
-  // The token stays in this tab's sessionStorage. Homework is cached per child/school.
+  // Restore the saved connection on launch. Homework is cached per child/school.
   useEffect(() => {
     if (!connection || !token) return;
     const controller = new AbortController();
