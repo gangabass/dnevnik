@@ -123,8 +123,8 @@ class NotificationService {
           if (reg && reg.showNotification) {
             await reg.showNotification(title, {
               body,
-              icon: '/pwa-192x192.png',
-              badge: '/pwa-192x192.png',
+              icon: `${import.meta.env.BASE_URL}pwa-192x192.png`,
+              badge: `${import.meta.env.BASE_URL}notification-badge.png`,
               tag: `grade-${grade.id}-${Date.now()}`,
               data: { url: '/?tab=grades&gradeId=' + grade.id },
             });
@@ -135,8 +135,8 @@ class NotificationService {
         // Fallback to Window Notification
         new Notification(title, {
           body,
-          icon: '/pwa-192x192.png',
-          badge: '/pwa-192x192.png',
+          icon: `${import.meta.env.BASE_URL}pwa-192x192.png`,
+          badge: `${import.meta.env.BASE_URL}notification-badge.png`,
           tag: `grade-${grade.id}`,
         });
         return true;

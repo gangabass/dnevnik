@@ -11,7 +11,7 @@ self.addEventListener('push', event => {
   event.waitUntil(self.registration.showNotification(String(payload.title || 'Дневник: новое уведомление'), {
     body: String(payload.body || 'Откройте приложение, чтобы посмотреть обновления.'),
     icon: new URL('pwa-192x192.png', scope).href,
-    badge: new URL('pwa-192x192.png', scope).href,
+    badge: new URL('notification-badge.png', scope).href,
     tag: String(payload.tag || 'dnevnik-update'),
     renotify: false,
     data: { url: target.href },

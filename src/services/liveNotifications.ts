@@ -14,7 +14,7 @@ export async function notifyNewMarks(grades: DiaryGrade[]) {
   const registration = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : undefined;
   for (const grade of grades.slice(0, 5)) {
     const title = `${grade.subject}: ${grade.value}`;
-    const options = { body: grade.workType, tag: `grade-${grade.id}`, icon: `${base}pwa-192x192.png` };
+    const options = { body: grade.workType, tag: `grade-${grade.id}`, icon: `${base}pwa-192x192.png`, badge: `${base}notification-badge.png` };
     try {
       if (registration) await registration.showNotification(title, options);
       else new Notification(title, options);

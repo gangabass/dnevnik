@@ -51,7 +51,7 @@ const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" w
 fs.writeFileSync(path.join(publicDir, 'icon.svg'), svgIcon);
 
 // Simple pure Node PNG generator function
-function createPng(width, height, isMaskable = false) {
+function createPng(width, height, isMaskable = false, notification = false) {
   // RGBA buffer: width * 4 bytes per row + 1 filter byte per row
   const rowBytes = width * 4;
   const rawData = Buffer.alloc(height * (rowBytes + 1));
@@ -66,6 +66,28 @@ function createPng(width, height, isMaskable = false) {
 
     for (let x = 0; x < width; x++) {
       const pixelOffset = rowOffset + 1 + x * 4;
+
+      // Notification badges use alpha only: a diary outline and a cut-out grade.
+      if (notification) {
+        const px = (x + 0.5) * 96 / width;
+        const py = (y + 0.5) * 96 / height;
+        const rect = (left, top, right, bottom) => px >= left && px <= right && py >= top && py <= bottom;
+        const rounded = (left, top, right, bottom, radius) =>
+          Math.hypot(Math.max(left + radius - px, 0, px - right + radius),
+            Math.max(top + radius - py, 0, py - bottom + radius)) <= radius;
+        const circle = Math.hypot(px - 68, py - 66);
+        const book = rounded(12, 8, 78, 88, 9) && !rounded(18, 14, 72, 82, 3);
+        const spine = rect(25, 14, 30, 82);
+        const lines = rect(38, 26, 64, 31) || rect(38, 39, 58, 44);
+        const five = rect(61, 55, 77, 59) || rect(61, 55, 65, 66) ||
+          rect(61, 63, 76, 67) || rect(73, 63, 77, 77) || rect(61, 73, 77, 77);
+        const opaque = circle <= 20 ? !five : circle < 24 ? false : book || spine || lines;
+        rawData[pixelOffset] = 255;
+        rawData[pixelOffset + 1] = 255;
+        rawData[pixelOffset + 2] = 255;
+        rawData[pixelOffset + 3] = opaque ? 255 : 0;
+        continue;
+      }
 
       // Distance from center for radial / squircle
       let inside = true;
@@ -200,6 +222,9 @@ function createPng(width, height, isMaskable = false) {
 
   return Buffer.concat([signature, ihdrChunk, idatChunk, iendChunk]);
 }
+
+// Dedicated monochrome notification badge (transparent background).
+fs.writeFileSync(path.join(publicDir, 'notification-badge.png'), createPng(96, 96, false, true));
 
 // Generate PWA icons
 fs.writeFileSync(path.join(publicDir, 'pwa-192x192.png'), createPng(192, 192, false));
