@@ -1,3 +1,4 @@
+import { DatePicker } from './components/DatePicker';
 import React, { useEffect, useRef, useState } from 'react';
 import { RefreshCw, KeyRound } from 'lucide-react';
 import { AndroidHeader } from './components/AndroidHeader';
@@ -164,8 +165,8 @@ export default function App() {
           {connection && <>
             {!token && <p className="text-xs text-amber-300">Для обновления данных введите токен. Сохранённые данные доступны без него.</p>}
             {activeTab !== 'grades' && <div className="grid grid-cols-2 gap-2">
-              <label className="text-xs text-slate-400">С даты<input aria-label="Начало периода" type="date" className={inputClass} value={range.start} onChange={event => setRange({ ...range, start: event.target.value })} /></label>
-              <label className="text-xs text-slate-400">По дату<input aria-label="Конец периода" type="date" className={inputClass} value={range.end} onChange={event => setRange({ ...range, end: event.target.value })} /></label>
+              <label className="text-xs text-slate-400">С даты<DatePicker aria-label="Начало периода" className={inputClass} value={range.start} onChange={event => setRange({ ...range, start: event.target.value })} /></label>
+              <label className="text-xs text-slate-400">По дату<DatePicker aria-label="Конец периода" className={inputClass} value={range.end} onChange={event => setRange({ ...range, end: event.target.value })} /></label>
             </div>}
             <button disabled={busy || !token || !range.start || !range.end || range.start > range.end} onClick={() => { setAppliedRange(range); setRefresh(value => value + 1); }} className="w-full flex justify-center items-center gap-2 rounded-xl bg-blue-600 py-2 text-sm disabled:opacity-50"><RefreshCw size={15} className={busy ? 'animate-spin' : ''} />{busy ? 'Загружаем…' : 'Обновить дневник'}</button>
           </>}
